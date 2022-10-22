@@ -101,10 +101,17 @@ class _MainPageState extends State<MainPage> {
                 ),
               ),
             ),
-            correct ? const Icon(Icons.done) : const Icon(Icons.clear),
-            correct
-                ? const Text('Good!')
-                : Text('You typed: $typedErrorLetter,Try again!'),
+            Visibility(
+              visible: typedErrorLetter.isNotEmpty || correct == true,
+              child: Column(
+                children: [
+                  correct
+                      ? const Text('Good!')
+                      : Text('You typed: $typedErrorLetter,Try again!'),
+                  correct ? const Icon(Icons.done) : const Icon(Icons.clear),
+                ],
+              ),
+            ),
             SizedBox(
               height: 50,
               child: Column(
