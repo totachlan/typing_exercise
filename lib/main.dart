@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'core/letter_service.dart';
 import 'features/main_page.dart';
 
 void main() {
@@ -16,7 +17,9 @@ class TypingExerciseApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: const MainPage(),
+      home: const MainPage(
+        letters: LetterService.aToZLetters,
+      ),
     );
   }
 }

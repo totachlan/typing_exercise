@@ -14,10 +14,10 @@ class LetterEntry extends LinkedListEntry<LetterEntry> {
 class LetterService {
   late final LinkedList<LetterEntry> _letters;
 
-  LetterService.aToZ() {
-    const aToZ = "abcdefghijklmnopqrstuvwxyz";
+  static const aToZLetters = "abcdefghijklmnopqrstuvwxyz";
 
-    _letters = _parseStringToLetterLinkedList(aToZ);
+  LetterService.aToZ() {
+    _letters = _parseStringToLetterLinkedList(aToZLetters);
   }
 
   LetterService.fromString(String letters) {
@@ -30,6 +30,13 @@ class LetterService {
       list.add(LetterEntry(letters[i]));
     }
     return list;
+  }
+
+  LinkedList<LetterEntry> getShuffleList() {
+    final list = _letters.map((e) => e.letter).toList();
+    list.shuffle();
+    final listStr = list.join('');
+    return _parseStringToLetterLinkedList(listStr);
   }
 
   LinkedList<LetterEntry> getList() => _letters;

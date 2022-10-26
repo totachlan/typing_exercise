@@ -1,11 +1,17 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 
 import '../core/letter_service.dart';
-import '../widget/error_letters_exercise_page.dart';
 import '../widget/gesture_detector_app_bar.dart';
 
 class MainPage extends StatefulWidget {
-  const MainPage({Key? key}) : super(key: key);
+  final String letters;
+
+  const MainPage({
+    Key? key,
+    required this.letters,
+  }) : super(key: key);
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -14,12 +20,19 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   final controller = TextEditingController();
   final focusNode = FocusNode();
-  var _letters = LetterService.aToZ().getList();
+  late LinkedList<LetterEntry> _letters;
   var typedList = '';
   var typedErrorLetter = '';
   bool correct = false;
+  bool shuffle = false;
   var completeCount = 0;
-  var errorCountMap = {};
+  Map<String, int> errorCountMap = {};
+
+  @override
+  void initState() {
+    _letters = LetterService.fromString(widget.letters).getList();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +46,13 @@ class _MainPageState extends State<MainPage> {
       floatingActionButton: errorCountMap.isNotEmpty
           ? FloatingActionButton(
               child: const Icon(Icons.arrow_circle_right_outlined),
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => ErrorLettersExercisePage())),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => MainPage(
+                    letters: errorCountMap.keys.toList().join(''),
+                  ),
+                ),
+              ),
             )
           : null,
       body: GestureDetector(
@@ -46,6 +64,37 @@ class _MainPageState extends State<MainPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               SizedBox(height: MediaQuery.of(context).size.height / 4),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    errorCountMap = {};
+                    typedList = '';
+                    _letters =
+                        LetterService.fromString(widget.letters).getList();
+                  });
+
+                  focusNode.requestFocus();
+                },
+                child: const Text('Clear'),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    errorCountMap = {};
+                    typedList = '';
+                    if (shuffle) {
+                      _letters =
+                          LetterService.fromString(widget.letters).getList();
+                    } else {
+                      _letters = LetterService.fromString(widget.letters)
+                          .getShuffleList();
+                    }
+                    shuffle = !shuffle;
+                  });
+                  focusNode.requestFocus();
+                },
+                child: Text('Clear to ${shuffle ? 'Order' : 'Shuffle'} Mode'),
+              ),
               Text(
                 'Complete times: $completeCount',
                 style: Theme.of(context).textTheme.headline5,
@@ -148,10 +197,12 @@ class _MainPageState extends State<MainPage> {
           });
         } else {
           setState(() {
-            errorCountMap[_letters.first.letter] =
-                errorCountMap[_letters.first.letter] == null
-                    ? 1
-                    : errorCountMap[_letters.first.letter] += 1;
+            var errLetter = errorCountMap[_letters.first.letter];
+            if (errLetter == null) {
+              errorCountMap[_letters.first.letter] = 1;
+            } else {
+              errorCountMap[_letters.first.letter] = errLetter + 1;
+            }
             correct = false;
             typedErrorLetter = _letters.first.letter;
           });
@@ -159,7 +210,9 @@ class _MainPageState extends State<MainPage> {
         if (_letters.isEmpty) {
           completeCount += 1;
           typedList = '';
-          _letters = LetterService.aToZ().getList();
+          _letters = shuffle
+              ? LetterService.fromString(widget.letters).getShuffleList()
+              : LetterService.fromString(widget.letters).getList();
         }
         controller.clear();
       },
